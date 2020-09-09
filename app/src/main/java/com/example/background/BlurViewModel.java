@@ -43,6 +43,16 @@ public class BlurViewModel extends AndroidViewModel {
 
     private LiveData<List<WorkInfo>> mSavedWorkInfo;
 
+    private Uri mOutputUri;
+
+    public Uri getOutputUri() {
+        return mOutputUri;
+    }
+
+    public void setOutputUri(String outputImageUri) {
+        mOutputUri = uriOrNull(outputImageUri);
+    }
+
     // BlurViewModel constructor
     public BlurViewModel(@NonNull Application application) {
         super(application);
@@ -128,5 +138,12 @@ public class BlurViewModel extends AndroidViewModel {
 
     public LiveData<List<WorkInfo>> getSavedWorkInfo() {
         return mSavedWorkInfo;
+    }
+
+    /**
+     * Cancel work using the work's unique name
+     */
+    void cancelWork() {
+        mWorkManager.cancelUniqueWork(Constants.IMAGE_MANIPULATION_WORK_NAME);
     }
 }

@@ -17,13 +17,16 @@
 package com.example.background;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.work.Data;
 import androidx.work.WorkInfo;
 
 import com.bumptech.glide.Glide;
@@ -71,14 +74,43 @@ public class BlurActivity extends AppCompatActivity {
                 WorkInfo workInfo = listOfWorkInfos.get(0);
 
                 boolean finished = workInfo.getState().isFinished();
-                if(!finished){
+                if (!finished) {
                     showWorkInProgress();
-                }else {
+                } else {
                     showWorkFinished();
+                    Data outputData = workInfo.getOutputData();
+
+                    String outputImageUri = outputData.getString(Constants.KEY_IMAGE_URI);
+
+                    // If there is an output file show "See File" button
+                    if (TextUtils.isEmpty(outputImageUri)) {
+                        mViewModel.setOutputUri(outputImageUri);
+                        binding.seeFileButton.setVisibility(View.VISIBLE);
+                    }
                 }
             }
         });
 
+
+        binding.seeFileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri currentUri = mViewModel.getOutputUri();
+                if (currentUri != null) {
+                    Intent actionView = new Intent(Intent.ACTION_VIEW, currentUri);
+                    if (actionView.resolveActivity(getPackageManager()) != null) {
+                        startActivity(actionView);
+                    }
+                }
+            }
+        });
+
+        binding.cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mViewModel.cancelWork();
+            }
+        });
     }
 
     /**
