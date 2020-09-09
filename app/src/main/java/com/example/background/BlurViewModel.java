@@ -23,6 +23,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
@@ -66,6 +67,14 @@ public class BlurViewModel extends AndroidViewModel {
      * @param blurLevel The amount to blur the image
      */
     void applyBlur(int blurLevel) {
+
+
+// Create charging constraint
+        Constraints constraints = new Constraints.Builder()
+                .setRequiresCharging(true)
+                .build();
+
+
         // Add WorkRequest to Cleanup temporary images
         // REPLACE THIS CODE:
 // WorkContinuation continuation =
@@ -95,6 +104,7 @@ public class BlurViewModel extends AndroidViewModel {
         // Add WorkRequest to save the image to the filesystem
         OneTimeWorkRequest save = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class)
                 .addTag(Constants.TAG_OUTPUT)
+                .setConstraints(constraints)
                 .build();
         continuation = continuation.then(save);
 
