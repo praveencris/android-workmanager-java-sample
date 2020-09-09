@@ -26,8 +26,13 @@ public class BlurWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        try {
+
             Context applicationContext = getApplicationContext();
+
+            // Makes a notification when the work starts and slows down the work so that it's easier to
+            // see each WorkRequest start, even on emulated devices
+            WorkerUtils.makeStatusNotification("Blurring image", applicationContext);
+            WorkerUtils.sleep();
 
             String resourceUri = getInputData().getString(Constants.KEY_IMAGE_URI);
 
@@ -36,7 +41,7 @@ public class BlurWorker extends Worker {
             //        applicationContext.getResources(),
             //        R.drawable.test);
             // WITH
-
+        try {
             if (TextUtils.isEmpty(resourceUri)) {
                 Log.e(TAG, "Invalid input uri");
                 throw new IllegalArgumentException("Invalid input uri");

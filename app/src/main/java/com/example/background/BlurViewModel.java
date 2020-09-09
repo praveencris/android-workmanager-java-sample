@@ -24,9 +24,12 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
 
 import com.example.background.workers.BlurWorker;
+import com.example.background.workers.CleanupWorker;
+import com.example.background.workers.SaveImageToFileWorker;
 
 public class BlurViewModel extends AndroidViewModel {
 
@@ -46,9 +49,22 @@ public class BlurViewModel extends AndroidViewModel {
      * @param blurLevel The amount to blur the image
      */
     void applyBlur(int blurLevel) {
+        // Add WorkRequest to Cleanup temporary images
+        WorkContinuation continuation =
+                mWorkManager.beginWith(OneTimeWorkRequest.from(CleanupWorker.class));
+
+        // Add WorkRequest to blur the image
         OneTimeWorkRequest blurRequest = new OneTimeWorkRequest.Builder(BlurWorker.class)
                 .setInputData(createInputDataForUri()).build();
-        mWorkManager.enqueue(blurRequest);
+        continuation = continuation.then(blurRequest);
+
+        // Add WorkRequest to save the image to the filesystem
+        OneTimeWorkRequest save = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class)
+                .build();
+        continuation = continuation.then(save);
+
+        // Actually start the work
+        continuation.enqueue();
     }
 
     /**
