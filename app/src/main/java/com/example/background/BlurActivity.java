@@ -19,11 +19,17 @@ package com.example.background;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.work.WorkInfo;
+
 import com.bumptech.glide.Glide;
 import com.example.background.databinding.ActivityBlurBinding;
+
+import java.util.List;
 
 public class BlurActivity extends AppCompatActivity {
 
@@ -50,6 +56,29 @@ public class BlurActivity extends AppCompatActivity {
 
         // Setup blur image file button
         binding.goButton.setOnClickListener(view -> mViewModel.applyBlur(getBlurLevel()));
+
+
+        mViewModel.getSavedWorkInfo().observe(this, new Observer<List<WorkInfo>>() {
+            @Override
+            public void onChanged(List<WorkInfo> listOfWorkInfos) {
+                // If there are no matching work info, do nothing
+                if (listOfWorkInfos == null || listOfWorkInfos.isEmpty()) {
+                    return;
+                }
+
+                // We only care about the first output status.
+                // Every continuation has only one worker tagged TAG_OUTPUT
+                WorkInfo workInfo = listOfWorkInfos.get(0);
+
+                boolean finished = workInfo.getState().isFinished();
+                if(!finished){
+                    showWorkInProgress();
+                }else {
+                    showWorkFinished();
+                }
+            }
+        });
+
     }
 
     /**
@@ -73,10 +102,11 @@ public class BlurActivity extends AppCompatActivity {
 
     /**
      * Get the blur level from the radio button as an integer
+     *
      * @return Integer representing the amount of times to blur the image
      */
     private int getBlurLevel() {
-        switch(binding.radioBlurGroup.getCheckedRadioButtonId()) {
+        switch (binding.radioBlurGroup.getCheckedRadioButtonId()) {
             case R.id.radio_blur_lv_1:
                 return 1;
             case R.id.radio_blur_lv_2:

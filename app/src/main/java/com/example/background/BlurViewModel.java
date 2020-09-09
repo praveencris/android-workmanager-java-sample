@@ -22,26 +22,32 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkContinuation;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.example.background.workers.BlurWorker;
 import com.example.background.workers.CleanupWorker;
 import com.example.background.workers.SaveImageToFileWorker;
 
+import java.util.List;
+
 public class BlurViewModel extends AndroidViewModel {
 
     private Uri mImageUri;
     private WorkManager mWorkManager;
 
+    private LiveData<List<WorkInfo>> mSavedWorkInfo;
 
     // BlurViewModel constructor
     public BlurViewModel(@NonNull Application application) {
         super(application);
         mWorkManager = WorkManager.getInstance(application);
+        mSavedWorkInfo = mWorkManager.getWorkInfosByTagLiveData(Constants.TAG_OUTPUT);
     }
 
     /**
@@ -69,7 +75,7 @@ public class BlurViewModel extends AndroidViewModel {
             // Input the Uri if this is the first blur operation
             // After the first blur operation the input will be the output of previous
             // blur operations.
-            if ( i == 0 ) {
+            if (i == 0) {
                 blurBuilder.setInputData(createInputDataForUri());
             }
 
@@ -78,6 +84,7 @@ public class BlurViewModel extends AndroidViewModel {
 
         // Add WorkRequest to save the image to the filesystem
         OneTimeWorkRequest save = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class)
+                .addTag(Constants.TAG_OUTPUT)
                 .build();
         continuation = continuation.then(save);
 
@@ -119,4 +126,7 @@ public class BlurViewModel extends AndroidViewModel {
         return mImageUri;
     }
 
+    public LiveData<List<WorkInfo>> getSavedWorkInfo() {
+        return mSavedWorkInfo;
+    }
 }
