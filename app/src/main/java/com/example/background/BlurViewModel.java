@@ -71,7 +71,7 @@ public class BlurViewModel extends AndroidViewModel {
 
 // Create charging constraint
         Constraints constraints = new Constraints.Builder()
-                .setRequiresCharging(true)
+                .setRequiresStorageNotLow(true)
                 .build();
 
 
